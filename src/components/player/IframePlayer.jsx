@@ -219,13 +219,8 @@ export default function IframePlayer({
         }}
       ></iframe>
       
-      {/* Multiplayer mode indicator only - no sync controls */}
-      {isInRoom && (
-        <div className="absolute top-4 left-4 bg-green-600/90 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg z-20 pointer-events-none">
-          👥 Multiplayer Mode - Chat Enabled
-        </div>
-      )}
 
     </div>
   );
 }
+
