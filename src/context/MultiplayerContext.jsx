@@ -121,13 +121,24 @@ export const MultiplayerProvider = ({ children }) => {
       setIsInRoom(true);
       setRoomError(null);
       
-      // If there's a current episode, sync to it
+      // Only sync episode if joining a different anime/episode
       if (data.currentEpisode && data.animeId) {
-        // Use React Router navigation instead of hard reload
-        const newUrl = `/watch/${data.animeId}?ep=${data.currentEpisode}&room=${data.roomCode}`;
         const currentLocation = locationRef.current;
-        if (currentLocation.pathname + currentLocation.search !== newUrl) {
+        const currentPath = currentLocation.pathname;
+        const currentParams = new URLSearchParams(currentLocation.search);
+        const currentAnimeId = currentPath.split('/watch/')[1];
+        const currentEpisodeId = currentParams.get('ep');
+        
+        // Only navigate if we're on a different anime or episode
+        if (currentAnimeId !== data.animeId || currentEpisodeId !== data.currentEpisode) {
+          const newUrl = `/watch/${data.animeId}?ep=${data.currentEpisode}&room=${data.roomCode}`;
           navigateRef.current(newUrl);
+        } else {
+          // Just update URL to include room code if we're already on the right episode
+          const newUrl = `/watch/${data.animeId}?ep=${data.currentEpisode}&room=${data.roomCode}`;
+          if (currentLocation.pathname + currentLocation.search !== newUrl) {
+            navigateRef.current(newUrl, { replace: true });
+          }
         }
       }
     });
