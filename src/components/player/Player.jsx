@@ -116,17 +116,22 @@ export default function Player({
               if (timeDiff > 3) {
                 art.currentTime = roomVideoState.currentTime;
               }
-              if (!isHost && art.video.paused) {
+              // For joined users, always play when host plays
+              if (!isHost) {
+                console.log('Joined user: Playing video');
                 art.play().catch(console.error);
               }
               break;
             case "pause":
-              if (!isHost && !art.video.paused) {
+              // For joined users, always pause when host pauses
+              if (!isHost) {
+                console.log('Joined user: Pausing video');
                 art.pause();
               }
               break;
             case "seek":
               if (!isHost) {
+                console.log('Joined user: Seeking to', roomVideoState.currentTime);
                 art.currentTime = roomVideoState.currentTime;
               }
               break;
