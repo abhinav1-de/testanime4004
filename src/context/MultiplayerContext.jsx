@@ -176,27 +176,10 @@ export const MultiplayerProvider = ({ children }) => {
       }]);
     });
 
-    // Video sync events - debounced to prevent chat interference
+    // Video sync disabled - no video synchronization between users
     newSocket.on('videoAction', (data) => {
-      const action = data.action || data; // Handle both old and new data structures
-      console.log('=== RECEIVED VIDEO ACTION ===');
-      console.log('Action type:', action.type);
-      console.log('Action time:', action.currentTime);
-      console.log('Currently updating from sync:', isUpdatingFromSync.current);
-      console.log('Socket ID:', newSocket.id);
-      
-      if (!isUpdatingFromSync.current) {
-        console.log('Processing video action:', action.type);
-        // Add debounce to prevent rapid sync calls that could cause buffering
-        setTimeout(() => {
-          if (!isUpdatingFromSync.current) {
-            setRoomVideoState(action);
-            setShouldSyncVideo(true);
-          }
-        }, 50);
-      } else {
-        console.log('Ignoring video action during sync:', action.type);
-      }
+      console.log('Video sync disabled - ignoring video action');
+      // Do nothing - video sync is completely disabled
     });
 
     // Episode change events
@@ -295,36 +278,9 @@ export const MultiplayerProvider = ({ children }) => {
   };
 
   const syncVideoAction = (action) => {
-    console.log('=== SYNC VIDEO ACTION CALLED ===');
-    console.log('Socket exists:', !!socket);
-    console.log('Room code:', roomCode);
-    console.log('Is host:', isHost);
-    console.log('Action:', action);
-    
-    if (socket && roomCode && isHost) {
-      isUpdatingFromSync.current = true;
-      console.log('=== EMITTING VIDEO ACTION ===');
-      console.log('Emitting video action:', action.type, 'at time:', action.currentTime, 'to room:', roomCode);
-      
-      // Ensure action data is properly structured
-      const actionData = {
-        type: action.type,
-        currentTime: action.currentTime || 0,
-        roomCode: roomCode,
-        timestamp: Date.now()
-      };
-      
-      console.log('Action data being sent:', actionData);
-      socket.emit('videoAction', { action: actionData });
-      console.log('Video action emitted successfully');
-      
-      // Consistent delay to prevent sync conflicts
-      setTimeout(() => {
-        isUpdatingFromSync.current = false;
-      }, 500);
-    } else {
-      console.log('Cannot sync video action - missing requirements');
-    }
+    // Video sync disabled - users can watch independently
+    console.log('Video sync disabled - no synchronization between users');
+    return;
   };
 
   const syncEpisodeChange = (episodeId, animeId) => {
