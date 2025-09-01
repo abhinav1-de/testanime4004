@@ -119,7 +119,7 @@ export default function IframePlayer({
     };
 
     loadIframeUrl();
-  }, [episodeId, servertype, serverName, animeInfo, activeServer, baseURL, aniid, episodeNum, activeServer?.slayLang, activeServer?.data_id]);
+  }, [episodeId, servertype, serverName, baseURL, aniid, episodeNum]);
 
   useEffect(() => {
     if (episodes?.length > 0) {
@@ -157,7 +157,7 @@ export default function IframePlayer({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [autoNext, currentEpisodeIndex, episodes, playNext, isInRoom, isHost, syncVideoAction]);
+  }, [autoNext, currentEpisodeIndex, episodes, playNext]);
 
   useEffect(() => {
     setLoading(true);
@@ -201,7 +201,7 @@ export default function IframePlayer({
 
       <iframe
         ref={iframeRef}
-        key={`${episodeId}-${servertype}-${serverName}-${activeServer?.data_id}-${activeServer?.slayLang}-${Date.now()}`}
+        key={`${episodeId}-${servertype}-${serverName}`}
         src={iframeSrc}
         allowFullScreen
         allow="autoplay; fullscreen; encrypted-media"
@@ -223,4 +223,3 @@ export default function IframePlayer({
     </div>
   );
 }
-
