@@ -1,6 +1,7 @@
-/* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+//* eslint-disable react/prop-types */
+import { useEffect, useState, useRef } from "react";
 import BouncingLoader from "../ui/bouncingloader/Bouncingloader";
+import { useMultiplayer } from "@/src/context/MultiplayerContext";
 
 export default function IframePlayer({
   episodeId,
@@ -14,6 +15,18 @@ export default function IframePlayer({
   aniid,
   activeServer,
 }) {
+  // Multiplayer integration
+  const { 
+    isInRoom, 
+    isHost, 
+    syncVideoAction, 
+    roomVideoState, 
+    shouldSyncVideo, 
+    setShouldSyncVideo 
+  } = useMultiplayer();
+  
+  const iframeRef = useRef(null);
+  const isUpdatingFromSync = useRef(false);
   const baseURL =
     serverName.toLowerCase() === "hd-1"
       ? import.meta.env.VITE_BASE_IFRAME_URL
@@ -129,9 +142,56 @@ export default function IframePlayer({
     }
   }, [episodeId, episodes]);
 
+  // Handle multiplayer video sync for iframe
+  useEffect(() => {
+    if (shouldSyncVideo && roomVideoState && iframeRef.current && !isUpdatingFromSync.current) {
+      isUpdatingFromSync.current = true;
+      setShouldSyncVideo(false);
+
+      console.log('=== IFRAME MULTIPLAYER SYNC ===');
+      console.log('Syncing iframe video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime, 'isHost:', isHost);
+
+      if (!isHost) {
+        // Send commands to iframe via postMessage (in case iframe supports it)
+        try {
+          const command = {
+            type: 'MULTIPLAYER_CONTROL',
+            action: roomVideoState.type,
+            currentTime: roomVideoState.currentTime,
+            timestamp: Date.now()
+          };
+          
+          console.log('Sending command to iframe:', command);
+          iframeRef.current.contentWindow.postMessage(command, '*');
+        } catch (error) {
+          console.error('Error sending command to iframe:', error);
+        }
+      }
+      
+      setTimeout(() => {
+        isUpdatingFromSync.current = false;
+      }, 500);
+    }
+  }, [shouldSyncVideo, roomVideoState, isHost, setShouldSyncVideo]);
+
+  // Manual sync controls for host when using iframe
+  const handleManualSync = (action) => {
+    if (isInRoom && isHost && !isUpdatingFromSync.current) {
+      console.log('Host manually syncing:', action);
+      syncVideoAction({
+        type: action,
+        currentTime: 0 // For iframe, we can't get exact time
+      });
+    }
+  };
+
   useEffect(() => {
     const handleMessage = (event) => {
-      const { currentTime, duration } = event.data;
+      console.log('Received message from iframe:', event.data);
+      
+      const { currentTime, duration, type, action } = event.data;
+      
+      // Handle auto-next functionality
       if (typeof currentTime === "number" && typeof duration === "number") {
         if (
           currentTime >= duration &&
@@ -141,12 +201,24 @@ export default function IframePlayer({
           playNext(episodes[currentEpisodeIndex + 1].id.match(/ep=(\d+)/)?.[1]);
         }
       }
+      
+      // Handle multiplayer events from iframe (if the iframe supports it)
+      if (isInRoom && isHost && type === 'VIDEO_STATE_CHANGE' && !isUpdatingFromSync.current) {
+        console.log('Host received video state change from iframe:', action);
+        if (action === 'play' || action === 'pause' || action === 'seek') {
+          syncVideoAction({
+            type: action,
+            currentTime: currentTime || 0
+          });
+        }
+      }
     };
+    
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [autoNext, currentEpisodeIndex, episodes, playNext]);
+  }, [autoNext, currentEpisodeIndex, episodes, playNext, isInRoom, isHost, syncVideoAction]);
 
   useEffect(() => {
     setLoading(true);
@@ -189,6 +261,7 @@ export default function IframePlayer({
       </div>
 
       <iframe
+        ref={iframeRef}
         key={`${episodeId}-${servertype}-${serverName}-${activeServer?.data_id}-${activeServer?.slayLang}-${Date.now()}`}
         src={iframeSrc}
         allowFullScreen
@@ -206,6 +279,55 @@ export default function IframePlayer({
           setLoading(false);
         }}
       ></iframe>
+      
+      {/* Multiplayer sync overlay for iframe players */}
+      {isInRoom && !isHost && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <div className="absolute top-4 left-4 bg-blue-600/90 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg">
+            {roomVideoState?.type === 'pause' ? '⏸️ Host Paused - Please pause your video' : roomVideoState?.type === 'play' ? '▶️ Host Playing - Please play your video' : '👥 Multiplayer Mode'}
+          </div>
+          
+          {/* Manual sync button for joined users */}
+          {roomVideoState?.type && (
+            <div className="absolute top-4 right-4 pointer-events-auto">
+              <button 
+                onClick={() => {
+                  // Show instruction to user
+                  alert(`Host ${roomVideoState.type === 'pause' ? 'paused' : 'played'} the video. Please manually ${roomVideoState.type === 'pause' ? 'pause' : 'play'} your video to stay synchronized.`);
+                }}
+                className="bg-orange-600/90 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-xs font-medium"
+              >
+                📋 Sync Instructions
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Host manual sync controls for iframe */}
+      {isInRoom && isHost && (
+        <div className="absolute top-4 left-4 z-20">
+          <div className="bg-green-600/90 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg mb-2">
+            👑 Host Controls - Use buttons to sync with others
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => handleManualSync('pause')}
+              className="bg-red-600/90 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium"
+              data-testid="button-manual-pause"
+            >
+              ⏸️ Sync Pause
+            </button>
+            <button 
+              onClick={() => handleManualSync('play')}
+              className="bg-blue-600/90 hover:bg-blue-700 text-white px-3 py-2 rounded text-xs font-medium"
+              data-testid="button-manual-play"
+            >
+              ▶️ Sync Play
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
