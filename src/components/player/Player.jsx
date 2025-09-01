@@ -103,48 +103,52 @@ export default function Player({
       isUpdatingFromSync.current = true;
       setShouldSyncVideo(false);
 
-      console.log('Syncing video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime);
+      console.log('Syncing video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime, 'isHost:', isHost);
 
-      // Add a small delay to ensure smooth sync
-      setTimeout(() => {
-        try {
-          switch (roomVideoState.type) {
-            case "play":
-              // Only sync time if there's a significant difference (more than 3 seconds)
+      // Immediate execution for better responsiveness
+      try {
+        switch (roomVideoState.type) {
+          case "play":
+            if (!isHost) {
+              console.log('Joined user: Playing video');
+              // Sync time first if there's a significant difference
               const timeDiff = Math.abs(art.currentTime - roomVideoState.currentTime);
               console.log('Time difference:', timeDiff);
-              if (timeDiff > 3) {
+              if (timeDiff > 2) {
                 art.currentTime = roomVideoState.currentTime;
               }
-              // For joined users, always play when host plays
-              if (!isHost) {
-                console.log('Joined user: Playing video');
-                art.play().catch(console.error);
-              }
-              break;
-            case "pause":
-              // For joined users, always pause when host pauses
-              if (!isHost) {
-                console.log('Joined user: Pausing video');
-                art.pause();
-              }
-              break;
-            case "seek":
-              if (!isHost) {
-                console.log('Joined user: Seeking to', roomVideoState.currentTime);
+              // Ensure video plays
+              art.play().catch(err => {
+                console.error('Failed to play video during sync:', err);
+              });
+            }
+            break;
+          case "pause":
+            if (!isHost) {
+              console.log('Joined user: Pausing video');
+              // Ensure video pauses immediately
+              art.pause();
+              // Also sync the exact pause time
+              if (roomVideoState.currentTime !== undefined) {
                 art.currentTime = roomVideoState.currentTime;
               }
-              break;
-          }
-        } catch (error) {
-          console.error('Error during video sync:', error);
+            }
+            break;
+          case "seek":
+            if (!isHost) {
+              console.log('Joined user: Seeking to', roomVideoState.currentTime);
+              art.currentTime = roomVideoState.currentTime;
+            }
+            break;
         }
-        
-        // Reset sync flag after processing
-        setTimeout(() => {
-          isUpdatingFromSync.current = false;
-        }, 300);
-      }, 50);
+      } catch (error) {
+        console.error('Error during video sync:', error);
+      }
+      
+      // Reset sync flag with consistent timing (match MultiplayerContext)
+      setTimeout(() => {
+        isUpdatingFromSync.current = false;
+      }, 500);
     }
   }, [shouldSyncVideo, roomVideoState, isHost, setShouldSyncVideo]);
 
@@ -470,16 +474,20 @@ export default function Player({
         art.on("play", () => {
           if (!isUpdatingFromSync.current) {
             console.log('Host initiated play at:', art.currentTime);
-            syncVideoAction({
-              type: "play",
-              currentTime: art.currentTime
-            });
+            // Small delay to ensure currentTime is accurate
+            setTimeout(() => {
+              syncVideoAction({
+                type: "play",
+                currentTime: art.currentTime
+              });
+            }, 100);
           }
         });
 
         art.on("pause", () => {
           if (!isUpdatingFromSync.current) {
             console.log('Host initiated pause at:', art.currentTime);
+            // Immediate sync for pause to ensure responsive pausing
             syncVideoAction({
               type: "pause",
               currentTime: art.currentTime
@@ -490,10 +498,13 @@ export default function Player({
         art.on("seek", () => {
           if (!isUpdatingFromSync.current) {
             console.log('Host initiated seek to:', art.currentTime);
-            syncVideoAction({
-              type: "seek",
-              currentTime: art.currentTime
-            });
+            // Small delay to ensure currentTime is updated after seek
+            setTimeout(() => {
+              syncVideoAction({
+                type: "seek",
+                currentTime: art.currentTime
+              });
+            }, 100);
           }
         });
       }
