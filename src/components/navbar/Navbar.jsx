@@ -56,8 +56,9 @@ function Navbar() {
   return (
     <SearchProvider>
       <nav
-        className={`fixed top-0 left-0 w-full z-[1000000] transition-all duration-300 ease-in-out bg-[#0a0a0a]
-          ${isScrolled ? "bg-opacity-80 backdrop-blur-md shadow-lg" : "bg-opacity-100"}`}
+        className={`fixed top-0 left-0 w-full z-[1000000] transition-all duration-500 ease-in-out glass-hover fade-in
+          ${isScrolled ? "glass backdrop-blur-xl border-b border-white/10" : "bg-gradient-to-r from-black/90 via-black/80 to-black/90"}`}
+        style={{ fontVariant: 'small-caps' }}
       >
         <div className="max-w-[1920px] mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left Section */}
@@ -65,11 +66,12 @@ function Navbar() {
             <div className="flex items-center gap-4">
               <FontAwesomeIcon
                 icon={faBars}
-                className="text-xl text-gray-200 cursor-pointer hover:text-white transition-colors"
+                className="text-xl text-gray-200 cursor-pointer hover:text-white transition-all duration-300 hover:scale-110 glass-hover p-2 rounded-lg"
                 onClick={handleHamburgerClick}
+                title="ᴍᴇɴᴜ"
               />
               <Link to="/home" className="flex items-center">
-                <img src="/logo.png" alt="JustAnime Logo" className="h-9 w-auto" />
+                <img src="/logo.png" alt="ᴊᴜꜱᴛᴀɴɪᴍᴇ ʟᴏɢᴏ" className="h-9 w-auto fade-in-scale" />
               </Link>
             </div>
           </div>
@@ -81,8 +83,8 @@ function Navbar() {
               <Link
                 to={location.pathname === "/random" ? "#" : "/random"}
                 onClick={handleRandomClick}
-                className="p-[10px] aspect-square bg-[#2a2a2a]/75 text-white/50 hover:text-white rounded-lg transition-colors flex items-center justify-center"
-                title="Random Anime"
+                className="p-[10px] aspect-square glass glass-hover text-white/70 hover:text-white rounded-lg transition-all duration-300 flex items-center justify-center animate-glow"
+                title="ʀᴀɴᴅᴏᴍ ᴀɴɪᴍᴇ"
               >
                 <FontAwesomeIcon icon={faRandom} className="text-lg" />
               </Link>
@@ -90,16 +92,17 @@ function Navbar() {
           </div>
 
           {/* Language Toggle - Desktop */}
-            <div className="hidden md:flex items-center gap-2 bg-[#27272A] rounded-md p-1">
-              {["EN", "JP"].map((lang) => (
+            <div className="hidden md:flex items-center gap-2 glass rounded-lg p-1 border border-white/10">
+              {["ᴇɴ", "ᴊᴘ"].map((lang, index) => (
                 <button
                   key={lang}
-                  onClick={() => toggleLanguage(lang)}
-                  className={`px-3 py-1 text-sm font-medium rounded ${
-                    language === lang
-                      ? "bg-[#3F3F46] text-white"
-                      : "text-gray-400 hover:text-white"
+                  onClick={() => toggleLanguage(index === 0 ? "EN" : "JP")}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
+                    language === (index === 0 ? "EN" : "JP")
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg animate-glow"
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
                   }`}
+                  style={{ fontVariant: 'small-caps' }}
                 >
                   {lang}
                 </button>
@@ -110,8 +113,8 @@ function Navbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="p-[10px] aspect-square bg-[#2a2a2a]/75 text-white/50 hover:text-white rounded-lg transition-colors flex items-center justify-center w-[38px] h-[38px]"
-              title={isMobileSearchOpen ? "Close Search" : "Search Anime"}
+              className="p-[10px] aspect-square glass glass-hover text-white/70 hover:text-white rounded-lg transition-all duration-300 flex items-center justify-center w-[38px] h-[38px]"
+              title={isMobileSearchOpen ? "ᴄʟᴏꜱᴇ ꜱᴇᴀʀᴄʜ" : "ꜱᴇᴀʀᴄʜ ᴀɴɪᴍᴇ"}
             >
               <FontAwesomeIcon 
                 icon={isMobileSearchOpen ? faXmark : faMagnifyingGlass} 
@@ -124,7 +127,7 @@ function Navbar() {
 
         {/* Mobile Search Dropdown */}
         {isMobileSearchOpen && (
-          <div className="md:hidden bg-[#18181B] shadow-lg">
+          <div className="md:hidden glass border-t border-white/10 shadow-2xl backdrop-blur-xl fade-in">
             <MobileSearch onClose={() => setIsMobileSearchOpen(false)} />
         </div>
         )}

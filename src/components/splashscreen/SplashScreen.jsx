@@ -8,16 +8,16 @@ import { faAngleRight } from "@fortawesome/free-solid-svg-icons";
 
 const FAQ_ITEMS = [
   {
-    question: "how to use adfree server?",
-    answer: "just click on HD2 for watching it adfree"
+    question: "ʜᴏᴡ ᴛᴏ ᴜꜱᴇ ᴀᴅꜰʀᴇᴇ ꜱᴇʀᴠᴇʀ?",
+    answer: "ᴊᴜꜱᴛ ᴄʟɪᴄᴋ ᴏɴ ʜᴅ2 ꜰᴏʀ ᴡᴀᴛᴄʜɪɴɢ ɪᴛ ᴀᴅꜰʀᴇᴇ"
   },
   {
-    question: "What makes Z-ANIME the best site to watch anime free online?",
-    answer: "Z-ANIME offers high-quality streaming, a vast library of anime, no intrusive ads, and a user-friendly interface - all completely free."
+    question: "ᴡʜᴀᴛ ᴍᴀᴋᴇꜱ ᴢ-ᴀɴɪᴍᴇ ᴛʜᴇ ʙᴇꜱᴛ ꜱɪᴛᴇ ᴛᴏ ᴡᴀᴛᴄʜ ᴀɴɪᴍᴇ ꜰʀᴇᴇ ᴏɴʟɪɴᴇ?",
+    answer: "ᴢ-ᴀɴɪᴍᴇ ᴏꜰꜰᴇʀꜱ ʜɪɢʜ-Qᴜᴀʟɪᴛʏ ꜱᴛʀᴇᴀᴍɪɴɢ, ᴀ ᴠᴀꜱᴛ ʟɪʙʀᴀʀʏ ᴏꜰ ᴀɴɪᴍᴇ, ɴᴏ ɪɴᴛʀᴜꜱɪᴠᴇ ᴀᴅꜱ, ᴀɴᴅ ᴀ ᴜꜱᴇʀ-ꜰʀɪᴇɴᴅʟʏ ɪɴᴛᴇʀꜰᴀᴄᴇ - ᴀʟʟ ᴄᴏᴍᴘʟᴇᴛᴇʟʏ ꜰʀᴇᴇ."
   },
   {
-    question: "How do I request an anime?",
-    answer: "You can submit anime requests through our contact form or by reaching out to our support team."
+    question: "ʜᴏᴡ ᴅᴏ ɪ ʀᴇQᴜᴇꜱᴛ ᴀɴ ᴀɴɪᴍᴇ?",
+    answer: "ʏᴏᴜ ᴄᴀɴ ꜱᴜʙᴍɪᴛ ᴀɴɪᴍᴇ ʀᴇQᴜᴇꜱᴛꜱ ᴛʜʀᴏᴜɢʜ ᴏᴜʀ ᴄᴏɴᴛᴀᴄᴛ ꜰᴏʀᴍ ᴏʀ ʙʏ ʀᴇᴀᴄʜɪɴɢ ᴏᴜᴛ ᴛᴏ ᴏᴜʀ ꜱᴜᴘᴘᴏʀᴛ ᴛᴇᴀᴍ."
   }
 ];
 
@@ -49,35 +49,36 @@ function SplashScreen() {
   return (
     <div className="splash-container">
       <div className="splash-overlay"></div>
-      <div className="content-wrapper">
-        <div className="logo-container">
-          <img src="/logo.png" alt={logoTitle} className="logo" />
+      <div className="content-wrapper fade-in">
+        <div className="logo-container fade-in-scale delay-200">
+          <img src="/logo.png" alt={logoTitle} className="logo animate-glow" />
         </div>
 
-        <div className="search-container">
+        <div className="search-container fade-in delay-300">
           <input
             type="text"
-            placeholder="Search anime..."
-            className="search-input"
+            placeholder="ꜱᴇᴀʀᴄʜ ᴀɴɪᴍᴇ..."
+            className="search-input glass"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}
+            style={{ fontVariant: 'small-caps' }}
           />
           <button
-            className="search-button"
+            className="search-button glass-hover"
             onClick={handleSearchSubmit}
-            aria-label="Search"
+            aria-label="ꜱᴇᴀʀᴄʜ"
           >
             <FontAwesomeIcon icon={faMagnifyingGlass} />
           </button>
         </div>
 
-        <Link to="/home" className="enter-button">
-          Enter Homepage <FontAwesomeIcon icon={faAngleRight} className="angle-icon" />
+        <Link to="/home" className="enter-button glass glass-hover fade-in delay-400" style={{ fontVariant: 'small-caps' }}>
+          ᴇɴᴛᴇʀ ʜᴏᴍᴇᴘᴀɢᴇ <FontAwesomeIcon icon={faAngleRight} className="angle-icon" />
         </Link>
 
-        <div className="faq-section">
-          <h2 className="faq-title">Frequently Asked Questions</h2>
+        <div className="faq-section fade-in delay-500">
+          <h2 className="faq-title" style={{ fontVariant: 'small-caps' }}>ꜰʀᴇQᴜᴇɴᴛʟʏ ᴀꜱᴋᴇᴅ Qᴜᴇꜱᴛɪᴏɴꜱ</h2>
           <div className="faq-list">
             {FAQ_ITEMS.map((item, index) => (
               <div key={index} className="faq-item">
