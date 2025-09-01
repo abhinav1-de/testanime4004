@@ -93,83 +93,13 @@ export default function Player({
     }
   }, [episodeId, episodes]);
 
-  // Handle multiplayer video sync with better timing control
+  // Video sync disabled - users can watch independently
   useEffect(() => {
-    if (shouldSyncVideo && roomVideoState && artRef.current && !isUpdatingFromSync.current) {
-      const art = artRef.current;
-      if (!art || !art.video) return;
-
-      // Prevent sync loops
-      isUpdatingFromSync.current = true;
+    if (shouldSyncVideo) {
+      console.log('Video sync disabled - users watch independently');
       setShouldSyncVideo(false);
-
-      console.log('=== PROCESSING VIDEO SYNC ===');
-      console.log('Syncing video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime, 'isHost:', isHost);
-      console.log('Video element exists:', !!art.video);
-      console.log('Video paused state:', art.video ? art.video.paused : 'N/A');
-
-      // Immediate execution for better responsiveness
-      try {
-        switch (roomVideoState.type) {
-          case "play":
-            if (!isHost) {
-              console.log('Joined user: Processing play command');
-              // Sync time first if there's a significant difference
-              const timeDiff = Math.abs(art.currentTime - roomVideoState.currentTime);
-              console.log('Time difference:', timeDiff);
-              if (timeDiff > 2) {
-                console.log('Syncing time to:', roomVideoState.currentTime);
-                art.currentTime = roomVideoState.currentTime;
-              }
-              // Ensure video plays
-              console.log('Calling art.play()...');
-              art.play().then(() => {
-                console.log('Video play successful');
-              }).catch(err => {
-                console.error('Failed to play video during sync:', err);
-              });
-            } else {
-              console.log('Ignoring play command - user is host');
-            }
-            break;
-          case "pause":
-            if (!isHost) {
-              console.log('Joined user: Processing pause command');
-              console.log('Video paused state before pause:', art.video.paused);
-              // Ensure video pauses immediately
-              art.pause();
-              console.log('art.pause() called');
-              // Also sync the exact pause time
-              if (roomVideoState.currentTime !== undefined) {
-                console.log('Syncing pause time to:', roomVideoState.currentTime);
-                art.currentTime = roomVideoState.currentTime;
-              }
-              setTimeout(() => {
-                console.log('Video paused state after pause:', art.video.paused);
-              }, 100);
-            } else {
-              console.log('Ignoring pause command - user is host');
-            }
-            break;
-          case "seek":
-            if (!isHost) {
-              console.log('Joined user: Seeking to', roomVideoState.currentTime);
-              art.currentTime = roomVideoState.currentTime;
-            } else {
-              console.log('Ignoring seek command - user is host');
-            }
-            break;
-        }
-      } catch (error) {
-        console.error('Error during video sync:', error);
-      }
-
-      // Reset sync flag with consistent timing (match MultiplayerContext)
-      setTimeout(() => {
-        isUpdatingFromSync.current = false;
-      }, 500);
     }
-  }, [shouldSyncVideo, roomVideoState, isHost, setShouldSyncVideo]);
+  }, [shouldSyncVideo, setShouldSyncVideo]);
 
   // Update multiplayer event handlers when room state changes
   useEffect(() => {
