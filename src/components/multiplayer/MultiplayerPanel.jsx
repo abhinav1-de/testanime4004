@@ -82,14 +82,14 @@ export default function MultiplayerPanel() {
       {/* Toggle Button */}
       <button
         onClick={() => setShowPanel(!showPanel)}
-        className={`fixed bottom-4 right-4 w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all ${
+        className={`fixed bottom-4 right-4 w-12 h-12 max-[480px]:w-14 max-[480px]:h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-all ${
           isInRoom ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
         }`}
         data-testid="button-multiplayer-toggle"
       >
-        <FontAwesomeIcon icon={faUsers} className="w-5 h-5" />
+        <FontAwesomeIcon icon={faUsers} className="w-5 h-5 max-[480px]:w-6 max-[480px]:h-6" />
         {isInRoom && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs max-[480px]:text-sm rounded-full w-5 h-5 max-[480px]:w-6 max-[480px]:h-6 flex items-center justify-center">
             {members.length}
           </span>
         )}
@@ -97,7 +97,7 @@ export default function MultiplayerPanel() {
 
       {/* Multiplayer Panel */}
       {showPanel && (
-        <div className="fixed bottom-20 right-4 w-80 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50">
+        <div className="fixed bottom-20 right-4 w-80 max-[480px]:fixed max-[480px]:inset-4 max-[480px]:bottom-20 max-[480px]:right-4 max-[480px]:left-4 max-[480px]:w-auto bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50">
           {!isInRoom ? (
             // Room Creation/Join Interface
             <div className="p-4">
@@ -155,32 +155,32 @@ export default function MultiplayerPanel() {
             </div>
           ) : (
             // Room Interface
-            <div className="flex flex-col h-96">
+            <div className="flex flex-col h-96 max-[480px]:h-[70vh]">
               {/* Room Header */}
-              <div className="p-4 border-b border-gray-700">
+              <div className="p-4 max-[480px]:p-5 border-b border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-white font-semibold">Room {roomCode}</h3>
-                    <p className="text-gray-400 text-sm">
+                    <h3 className="text-white font-semibold text-base max-[480px]:text-lg">Room {roomCode}</h3>
+                    <p className="text-gray-400 text-sm max-[480px]:text-base">
                       {isHost ? 'You are the host' : 'Watching together'}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 max-[480px]:gap-3">
                     <button
                       onClick={copyRoomCode}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-white p-1 max-[480px]:p-2"
                       title="Copy room code"
                       data-testid="button-copy-room-code"
                     >
-                      <FontAwesomeIcon icon={faCopy} className="w-4 h-4" />
+                      <FontAwesomeIcon icon={faCopy} className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5" />
                     </button>
                     <button
                       onClick={leaveRoom}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-red-400 hover:text-red-300 p-1 max-[480px]:p-2"
                       title="Leave room"
                       data-testid="button-leave-room"
                     >
-                      <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
+                      <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5" />
                     </button>
                   </div>
                 </div>
@@ -190,26 +190,27 @@ export default function MultiplayerPanel() {
               <div className="flex border-b border-gray-700">
                 <button
                   onClick={() => setActiveTab('members')}
-                  className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                  className={`flex-1 py-3 max-[480px]:py-4 px-4 text-sm max-[480px]:text-base font-medium transition-colors ${
                     activeTab === 'members' 
                       ? 'text-white bg-gray-800' 
                       : 'text-gray-400 hover:text-white'
                   }`}
                   data-testid="tab-members"
                 >
-                  <FontAwesomeIcon icon={faUsers} className="w-4 h-4 mr-2" />
-                  Members ({members.length})
+                  <FontAwesomeIcon icon={faUsers} className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5 mr-2" />
+                  <span className="max-[480px]:hidden">Members ({members.length})</span>
+                  <span className="hidden max-[480px]:inline">Members</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('chat')}
-                  className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                  className={`flex-1 py-3 max-[480px]:py-4 px-4 text-sm max-[480px]:text-base font-medium transition-colors ${
                     activeTab === 'chat' 
                       ? 'text-white bg-gray-800' 
                       : 'text-gray-400 hover:text-white'
                   }`}
                   data-testid="tab-chat"
                 >
-                  <FontAwesomeIcon icon={faComments} className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faComments} className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5 mr-2" />
                   Chat
                 </button>
               </div>
@@ -217,18 +218,18 @@ export default function MultiplayerPanel() {
               {/* Tab Content */}
               <div className="flex-1 overflow-hidden">
                 {activeTab === 'members' ? (
-                  <div className="p-4 space-y-2 overflow-y-auto h-full">
+                  <div className="p-3 max-[480px]:p-4 space-y-2 max-[480px]:space-y-3 overflow-y-auto h-full">
                     {members.map((member, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-2 bg-gray-800 rounded"
+                        className="flex items-center justify-between p-3 max-[480px]:p-4 bg-gray-800 rounded"
                         data-testid={`member-${index}`}
                       >
-                        <span className="text-white">{member.nickname}</span>
+                        <span className="text-white text-sm max-[480px]:text-base">{member.nickname}</span>
                         {member.isHost && (
                           <FontAwesomeIcon 
                             icon={faCrown} 
-                            className="w-4 h-4 text-yellow-400" 
+                            className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5 text-yellow-400" 
                             title="Host"
                           />
                         )}
@@ -238,11 +239,11 @@ export default function MultiplayerPanel() {
                 ) : (
                   <div className="flex flex-col h-full">
                     {/* Chat Messages */}
-                    <div className="flex-1 p-4 overflow-y-auto space-y-2">
+                    <div className="flex-1 p-3 max-[480px]:p-2 overflow-y-auto space-y-2 max-[480px]:space-y-3">
                       {chat.map((msg) => (
                         <div
                           key={msg.id}
-                          className={`text-sm ${
+                          className={`text-sm max-[480px]:text-base ${
                             msg.isSystem 
                               ? 'text-gray-400 italic text-center' 
                               : 'text-white'
@@ -250,38 +251,43 @@ export default function MultiplayerPanel() {
                           data-testid={`chat-message-${msg.id}`}
                         >
                           {!msg.isSystem && (
-                            <span className={`font-medium ${msg.isHost ? 'text-yellow-400' : 'text-blue-400'}`}>
-                              {msg.nickname}: 
-                            </span>
+                            <div className="max-[480px]:mb-1">
+                              <span className={`font-medium ${msg.isHost ? 'text-yellow-400' : 'text-blue-400'}`}>
+                                {msg.nickname}
+                              </span>
+                              <span className="max-[480px]:hidden">: </span>
+                            </div>
                           )}
-                          <span className="ml-1">{msg.message}</span>
+                          <span className={`${!msg.isSystem ? 'max-[480px]:block max-[480px]:pl-0 ml-1 max-[480px]:ml-0' : ''} break-words`}>
+                            {msg.message}
+                          </span>
                         </div>
                       ))}
                       {chat.length === 0 && (
-                        <div className="text-center text-gray-400 text-sm">
+                        <div className="text-center text-gray-400 text-sm max-[480px]:text-base">
                           No messages yet. Start the conversation!
                         </div>
                       )}
                     </div>
 
                     {/* Chat Input */}
-                    <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
-                      <div className="flex gap-2">
+                    <form onSubmit={handleSendMessage} className="p-3 max-[480px]:p-4 border-t border-gray-700">
+                      <div className="flex gap-2 max-[480px]:gap-3">
                         <input
                           type="text"
                           value={chatMessage}
                           onChange={(e) => setChatMessage(e.target.value)}
-                          className="flex-1 px-3 py-2 bg-gray-800 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
+                          className="flex-1 px-3 py-2 max-[480px]:px-4 max-[480px]:py-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm max-[480px]:text-base"
                           placeholder="Type a message..."
                           data-testid="input-chat-message"
                         />
                         <button
                           type="submit"
                           disabled={!chatMessage.trim()}
-                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-3 py-2 rounded transition-colors"
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-3 py-2 max-[480px]:px-4 max-[480px]:py-3 rounded transition-colors min-w-[44px] max-[480px]:min-w-[48px] flex items-center justify-center"
                           data-testid="button-send-message"
                         >
-                          <FontAwesomeIcon icon={faPaperPlane} className="w-4 h-4" />
+                          <FontAwesomeIcon icon={faPaperPlane} className="w-4 h-4 max-[480px]:w-5 max-[480px]:h-5" />
                         </button>
                       </div>
                     </form>
