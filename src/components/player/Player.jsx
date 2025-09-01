@@ -63,6 +63,8 @@ export default function Player({
 }) {
   const artRef = useRef(null);
   const leftAtRef = useRef(0);
+  const isUpdatingFromSync = useRef(false);
+  const playerInitialized = useRef(false);
   
   // Multiplayer integration
   const { 
@@ -91,30 +93,53 @@ export default function Player({
     }
   }, [episodeId, episodes]);
 
-  // Handle multiplayer video sync
+  // Handle multiplayer video sync with better timing control
   useEffect(() => {
-    if (shouldSyncVideo && roomVideoState && !isHost && artRef.current) {
+    if (shouldSyncVideo && roomVideoState && artRef.current && !isUpdatingFromSync.current) {
       const art = artRef.current;
-      if (!art) return;
+      if (!art || !art.video) return;
 
+      // Prevent sync loops
+      isUpdatingFromSync.current = true;
       setShouldSyncVideo(false);
 
-      switch (roomVideoState.type) {
-        case "play":
-          // Only sync time if there's a significant difference (more than 2 seconds)
-          const timeDiff = Math.abs(art.currentTime - roomVideoState.currentTime);
-          if (timeDiff > 2) {
-            art.currentTime = roomVideoState.currentTime;
+      console.log('Syncing video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime);
+
+      // Add a small delay to ensure smooth sync
+      setTimeout(() => {
+        try {
+          switch (roomVideoState.type) {
+            case "play":
+              // Only sync time if there's a significant difference (more than 3 seconds)
+              const timeDiff = Math.abs(art.currentTime - roomVideoState.currentTime);
+              console.log('Time difference:', timeDiff);
+              if (timeDiff > 3) {
+                art.currentTime = roomVideoState.currentTime;
+              }
+              if (!isHost && art.video.paused) {
+                art.play().catch(console.error);
+              }
+              break;
+            case "pause":
+              if (!isHost && !art.video.paused) {
+                art.pause();
+              }
+              break;
+            case "seek":
+              if (!isHost) {
+                art.currentTime = roomVideoState.currentTime;
+              }
+              break;
           }
-          art.play();
-          break;
-        case "pause":
-          art.pause();
-          break;
-        case "seek":
-          art.currentTime = roomVideoState.currentTime;
-          break;
-      }
+        } catch (error) {
+          console.error('Error during video sync:', error);
+        }
+        
+        // Reset sync flag after processing
+        setTimeout(() => {
+          isUpdatingFromSync.current = false;
+        }, 300);
+      }, 50);
     }
   }, [shouldSyncVideo, roomVideoState, isHost, setShouldSyncVideo]);
 
@@ -247,8 +272,12 @@ export default function Player({
     }
   };
 
+  // Initialize video player - separate from sync events
   useEffect(() => {
-    if (!streamUrl || !artRef.current) return;
+    if (!streamUrl || !artRef.current || playerInitialized.current) return;
+    
+    console.log('Initializing video player for episode:', episodeId);
+    
     const iframeUrl = streamInfo?.streamingLink?.iframe;
     const headers = {};
     headers.referer=new URL(iframeUrl).origin+"/";
@@ -267,18 +296,18 @@ export default function Player({
       type: "m3u8",
       autoplay: autoPlay,
       volume: 1,
-      setting: true,
-      playbackRate: true,
-      pip: true,
-      hotkey: false,
-      fullscreen: true,
+      setting: isInRoom && !isHost ? false : true,
+      playbackRate: isInRoom && !isHost ? false : true,
+      pip: isInRoom && !isHost ? false : true,
+      hotkey: isInRoom && !isHost ? false : false,
+      fullscreen: isInRoom && !isHost ? false : true,
       mutex: true,
       playsInline: true,
-      lock: true,
-      airplay: true,
+      lock: isInRoom && !isHost ? true : true,
+      airplay: isInRoom && !isHost ? false : true,
       autoOrientation: true,
-      fastForward: true,
-      aspectRatio: true,
+      fastForward: isInRoom && !isHost ? false : true,
+      aspectRatio: isInRoom && !isHost ? false : true,
       moreVideoAttr: {
         crossOrigin: 'anonymous',
         preload: 'none',
@@ -329,25 +358,29 @@ export default function Player({
             height: "100%",
             transform: "translateX(-50%)",
           },
-          disable: !Artplayer.utils.isMobile,
-          click: () => art.toggle(),
+          disable: !Artplayer.utils.isMobile || (isInRoom && !isHost),
+          click: () => !isInRoom || isHost ? art.toggle() : null,
         },
         {
           name: "rewind",
           html: "",
           style: { position: "absolute", left: 0, top: 0, width: "40%", height: "100%" },
-          disable: !Artplayer.utils.isMobile,
+          disable: !Artplayer.utils.isMobile || (isInRoom && !isHost),
           click: () => {
-            art.controls.show = !art.controls.show;
+            if (!isInRoom || isHost) {
+              art.controls.show = !art.controls.show;
+            }
           },
         },
         {
           name: "forward",
           html: "",
           style: { position: "absolute", right: 0, top: 0, width: "40%", height: "100%" },
-          disable: !Artplayer.utils.isMobile,
+          disable: !Artplayer.utils.isMobile || (isInRoom && !isHost),
           click: () => {
-            art.controls.show = !art.controls.show;
+            if (!isInRoom || isHost) {
+              art.controls.show = !art.controls.show;
+            }
           },
         },
         {
@@ -427,27 +460,36 @@ export default function Player({
         leftAtRef.current = Math.floor(art.currentTime);
       });
 
-      // Multiplayer event handlers
+      // Multiplayer event handlers - only for host and prevent during sync
       if (isInRoom && isHost) {
         art.on("play", () => {
-          syncVideoAction({
-            type: "play",
-            currentTime: art.currentTime
-          });
+          if (!isUpdatingFromSync.current) {
+            console.log('Host initiated play at:', art.currentTime);
+            syncVideoAction({
+              type: "play",
+              currentTime: art.currentTime
+            });
+          }
         });
 
         art.on("pause", () => {
-          syncVideoAction({
-            type: "pause",
-            currentTime: art.currentTime
-          });
+          if (!isUpdatingFromSync.current) {
+            console.log('Host initiated pause at:', art.currentTime);
+            syncVideoAction({
+              type: "pause",
+              currentTime: art.currentTime
+            });
+          }
         });
 
         art.on("seek", () => {
-          syncVideoAction({
-            type: "seek",
-            currentTime: art.currentTime
-          });
+          if (!isUpdatingFromSync.current) {
+            console.log('Host initiated seek to:', art.currentTime);
+            syncVideoAction({
+              type: "seek",
+              currentTime: art.currentTime
+            });
+          }
         });
       }
 
@@ -469,7 +511,13 @@ export default function Player({
       ];
       autoSkipIntro && art.plugins.add(autoSkip(skipRanges));
 
-      document.addEventListener("keydown", (event) => handleKeydown(event, art));
+      const keydownHandler = (event) => {
+        // Disable keyboard shortcuts for joiners in multiplayer
+        if (isInRoom && !isHost) return;
+        handleKeydown(event, art);
+      };
+      
+      document.addEventListener("keydown", keydownHandler);
 
       art.subtitle.style({
         fontSize: (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + "px",
@@ -484,7 +532,7 @@ export default function Player({
       }
       const $rewind = art.layers["rewind"];
       const $forward = art.layers["forward"];
-      Artplayer.utils.isMobile &&
+      Artplayer.utils.isMobile && (!isInRoom || isHost) &&
         art.proxy($rewind, "dblclick", () => {
           art.currentTime = Math.max(0, art.currentTime - 10);
           art.layers["backwardIcon"].style.opacity = 1;
@@ -492,7 +540,7 @@ export default function Player({
             art.layers["backwardIcon"].style.opacity = 0;
           }, 300);
         });
-      Artplayer.utils.isMobile &&
+      Artplayer.utils.isMobile && (!isInRoom || isHost) &&
         art.proxy($forward, "dblclick", () => {
           art.currentTime = Math.max(0, art.currentTime + 10);
           art.layers["forwardIcon"].style.opacity = 1;
@@ -535,11 +583,19 @@ export default function Player({
       }
     });
 
+    // Mark player as initialized
+    playerInitialized.current = true;
+
     return () => {
+      console.log('Cleaning up video player for episode:', episodeId);
+      playerInitialized.current = false;
+      
       if (art && art.destroy) {
         art.destroy(false);
       }
       document.removeEventListener("keydown", handleKeydown);
+      
+      // Save continue watching data
       const continueWatching = JSON.parse(localStorage.getItem("continueWatching")) || [];
       const newEntry = {
         id: animeInfo?.id,
@@ -563,8 +619,8 @@ export default function Player({
       }
       localStorage.setItem("continueWatching", JSON.stringify(continueWatching));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streamUrl, subtitles, intro, outro]);
+    // Only recreate player when essential props change
+  }, [streamUrl, episodeId]);
 
   return <div ref={artRef} className="w-full h-full"></div>;
 }
