@@ -191,8 +191,13 @@ export const MultiplayerProvider = ({ children }) => {
       
       if (!isUpdatingFromSync.current) {
         console.log('Processing video action:', action.type);
-        setRoomVideoState(action);
-        setShouldSyncVideo(true);
+        // Add debounce to prevent rapid sync calls that could cause buffering
+        setTimeout(() => {
+          if (!isUpdatingFromSync.current) {
+            setRoomVideoState(action);
+            setShouldSyncVideo(true);
+          }
+        }, 50);
       } else {
         console.log('Ignoring video action during sync:', action.type);
       }
@@ -209,9 +214,12 @@ export const MultiplayerProvider = ({ children }) => {
       }
     });
 
-    // Chat events
+    // Chat events - optimized to prevent video interference
     newSocket.on('chatMessage', (message) => {
-      setChat(prev => [...prev, message]);
+      // Use requestAnimationFrame to batch chat updates and reduce performance impact
+      requestAnimationFrame(() => {
+        setChat(prev => [...prev, message]);
+      });
     });
 
     // Room left event (when user successfully leaves)
@@ -277,7 +285,16 @@ export const MultiplayerProvider = ({ children }) => {
 
   const sendChatMessage = (message) => {
     if (socket && roomCode && message.trim()) {
+      // Temporarily disable video sync during chat to prevent buffering
+      const originalSyncFlag = isUpdatingFromSync.current;
+      isUpdatingFromSync.current = true;
+      
       socket.emit('chatMessage', { message: message.trim() });
+      
+      // Re-enable sync after a short delay
+      setTimeout(() => {
+        isUpdatingFromSync.current = originalSyncFlag;
+      }, 100);
     }
   };
 
