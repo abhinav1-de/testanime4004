@@ -65,17 +65,17 @@ export default function Player({
   const leftAtRef = useRef(0);
   const isUpdatingFromSync = useRef(false);
   const playerInitialized = useRef(false);
-  
+
   // Multiplayer integration
-  const { 
-    isInRoom, 
-    isHost, 
-    syncVideoAction, 
-    roomVideoState, 
-    shouldSyncVideo, 
+  const {
+    isInRoom,
+    isHost,
+    syncVideoAction,
+    roomVideoState,
+    shouldSyncVideo,
     setShouldSyncVideo,
-    setPlayerReference 
-  } = useMultiplayer(); 
+    setPlayerReference
+  } = useMultiplayer();
   const proxy = import.meta.env.VITE_PROXY_URL;
   const m3u8proxy = import.meta.env.VITE_M3U8_PROXY_URL?.split(",") || [];
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
@@ -135,7 +135,7 @@ export default function Player({
           case "pause":
             if (!isHost) {
               console.log('Joined user: Processing pause command');
-              console.log('Current video paused state before pause:', art.video.paused);
+              console.log('Video paused state before pause:', art.video.paused);
               // Ensure video pauses immediately
               art.pause();
               console.log('art.pause() called');
@@ -163,7 +163,7 @@ export default function Player({
       } catch (error) {
         console.error('Error during video sync:', error);
       }
-      
+
       // Reset sync flag with consistent timing (match MultiplayerContext)
       setTimeout(() => {
         isUpdatingFromSync.current = false;
@@ -311,9 +311,9 @@ export default function Player({
   // Initialize video player - separate from sync events
   useEffect(() => {
     if (!streamUrl || !artRef.current || playerInitialized.current) return;
-    
+
     console.log('Initializing video player for episode:', episodeId);
-    
+
     const iframeUrl = streamInfo?.streamingLink?.iframe;
     const headers = {};
     headers.referer=new URL(iframeUrl).origin+"/";
@@ -502,7 +502,7 @@ export default function Player({
       const setupMultiplayerHandlers = () => {
         // Clean up existing handlers first
         if (playHandler) art.off("play", playHandler);
-        if (pauseHandler) art.off("pause", pauseHandler);  
+        if (pauseHandler) art.off("pause", pauseHandler);
         if (seekHandler) art.off("seek", seekHandler);
 
         // Set up new handlers if host in room
@@ -578,7 +578,7 @@ export default function Player({
         if (isInRoom && !isHost) return;
         handleKeydown(event, art);
       };
-      
+
       document.addEventListener("keydown", keydownHandler);
 
       art.subtitle.style({
@@ -651,12 +651,12 @@ export default function Player({
     return () => {
       console.log('Cleaning up video player for episode:', episodeId);
       playerInitialized.current = false;
-      
+
       if (art && art.destroy) {
         art.destroy(false);
       }
       document.removeEventListener("keydown", handleKeydown);
-      
+
       // Save continue watching data
       const continueWatching = JSON.parse(localStorage.getItem("continueWatching")) || [];
       const newEntry = {
