@@ -48,7 +48,7 @@ export const MultiplayerProvider = ({ children }) => {
     if (!nickname) {
       setNickname(`Guest-${Math.floor(1000 + Math.random() * 9000)}`);
     }
-  }, [nickname]);
+  }, []);
 
   useEffect(() => {
     // Initialize socket connection to multiplayer server
@@ -166,11 +166,14 @@ export const MultiplayerProvider = ({ children }) => {
       }]);
     });
 
-    // Video sync events
+    // Video sync events - debounced to prevent chat interference
     newSocket.on('videoAction', (action) => {
       if (!isUpdatingFromSync.current) {
+        console.log('Received video action:', action.type, 'at time:', action.currentTime);
         setRoomVideoState(action);
         setShouldSyncVideo(true);
+      } else {
+        console.log('Ignoring video action during sync:', action.type);
       }
     });
 
@@ -215,6 +218,7 @@ export const MultiplayerProvider = ({ children }) => {
   // Functions to interact with multiplayer
   const createRoom = () => {
     if (socket && nickname) {
+      console.log('Creating room with nickname:', nickname);
       socket.emit('createRoom', { nickname });
     }
   };
@@ -225,6 +229,7 @@ export const MultiplayerProvider = ({ children }) => {
       if (customNickname) {
         setNickname(customNickname);
       }
+      console.log('Joining room with nickname:', nameToUse);
       socket.emit('joinRoom', { roomCode: code, nickname: nameToUse });
     }
   };
@@ -258,10 +263,12 @@ export const MultiplayerProvider = ({ children }) => {
   const syncVideoAction = (action) => {
     if (socket && roomCode && isHost) {
       isUpdatingFromSync.current = true;
+      console.log('Emitting video action:', action.type, 'at time:', action.currentTime);
       socket.emit('videoAction', { action });
+      // Longer delay to prevent sync conflicts
       setTimeout(() => {
         isUpdatingFromSync.current = false;
-      }, 100);
+      }, 500);
     }
   };
 
@@ -305,3 +312,4 @@ export const MultiplayerProvider = ({ children }) => {
     </MultiplayerContext.Provider>
   );
 };
+
