@@ -201,8 +201,8 @@ export const MultiplayerProvider = ({ children }) => {
 
     // Episode change events
     newSocket.on('changeEpisode', (data) => {
-      const { episodeId, animeId } = data;
-      const newUrl = `/watch/${animeId}?ep=${episodeId}&room=${roomCode}`;
+      const { episodeId, animeId, roomCode: dataRoomCode } = data;
+      const newUrl = `/watch/${animeId}?ep=${episodeId}&room=${dataRoomCode}`;
       const currentLocation = locationRef.current;
       
       if (currentLocation.pathname + currentLocation.search !== newUrl) {
@@ -329,7 +329,7 @@ export const MultiplayerProvider = ({ children }) => {
 
   const syncEpisodeChange = (episodeId, animeId) => {
     if (socket && roomCode && isHost) {
-      socket.emit('changeEpisode', { episodeId, animeId });
+      socket.emit('changeEpisode', { episodeId, animeId, roomCode });
     }
   };
 
