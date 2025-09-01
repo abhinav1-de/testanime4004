@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams, Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/src/context/LanguageContext";
@@ -95,12 +95,14 @@ export default function Watch() {
   const controlsRef = useRef(null);
   const episodesRef = useRef(null);
 
-  // Auto-join room if room parameter exists in URL
+  // Auto-join room if room parameter exists in URL (only once)
   useEffect(() => {
-    if (roomParam && !isInRoom && nickname) {
+    if (roomParam && !isInRoom && nickname && !roomCode) {
+      // Only join if we don't already have a room code (prevents rejoining the same room)
+      console.log('Auto-joining room from URL:', roomParam);
       joinRoom(roomParam);
     }
-  }, [roomParam, isInRoom, joinRoom, nickname]);
+  }, [roomParam, isInRoom, nickname, roomCode, joinRoom]);
 
   // Sync episode changes in multiplayer
   useEffect(() => {
