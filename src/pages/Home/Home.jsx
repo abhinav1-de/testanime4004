@@ -19,7 +19,6 @@ function Home() {
   if (!homeInfo) return <Error error="404" />;
   return (
     <>
-      <JoinRoomPanel />
       <div className="pt-16 w-full fade-in" style={{ fontVariant: 'small-caps' }}>
         <div className="fade-in-scale delay-100">
           <Spotlight spotlights={homeInfo.spotlights} />
