@@ -158,11 +158,7 @@ export const useWatch = (animeId, initialEpisodeId) => {
           { name: "English", param: "ENGLISH" },
           { name: "Japanese", param: "JAPANESE" }, 
           { name: "Hindi", param: "HINDI" },
-          { name: "Bangla", param: "BANGLA" },
-          { name: "Tamil", param: "TAMIL" },
-          { name: "Kannada", param: "KANNADA" },
-          { name: "Malayalam", param: "MALAYALAM" },
-          { name: "Telugu", param: "TELUGU" }
+          { name: "Nest", param: "NEST" }
         ];
         
         slayLanguages.forEach(lang => {
@@ -299,3 +295,4 @@ export const useWatch = (animeId, initialEpisodeId) => {
     activeServer,
   };
 };
+
