@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BouncingLoader from "../ui/bouncingloader/Bouncingloader";
 import "./Servers.css";
 import { useEffect } from "react";
+import { useMultiplayer } from "@/src/context/MultiplayerContext";
 
 function Servers({
   servers,
@@ -19,6 +20,8 @@ function Servers({
   setActiveServerType,
   setActiveServerName,
 }) {
+  // Multiplayer integration - only show iframe compatible servers when in room
+  const { isInRoom } = useMultiplayer();
   
   const handleServerSelect = (server) => {
     setActiveServerId(server.data_id);
@@ -27,20 +30,42 @@ function Servers({
     localStorage.setItem("server_name", server.serverName);
     localStorage.setItem("server_type", server.type);
   };
-  const subServers =
-    servers?.filter((server) => server.type === "sub") || [];
-  const dubServers =
-    servers?.filter((server) => server.type === "dub") || [];
-  const rawServers =
-    servers?.filter((server) => server.type === "raw") || [];
-  const multiServers =
-    servers?.filter((server) => server.type === "multi") || [];
-  const slayServers =
-    servers?.filter((server) => server.type === "slay") || [];
+
+  // Filter servers based on multiplayer compatibility
+  const isIframeCompatible = (server) => {
+    // Multiplayer compatible servers: Only SLAY servers
+    return server.type === "slay";
+  };
+
+  // When in multiplayer room, only show iframe-compatible servers
+  const filteredServers = isInRoom 
+    ? servers?.filter(isIframeCompatible) || []
+    : servers || [];
+
+  const subServers = filteredServers.filter((server) => server.type === "sub") || [];
+  const dubServers = filteredServers.filter((server) => server.type === "dub") || [];
+  const rawServers = filteredServers.filter((server) => server.type === "raw") || [];
+  const multiServers = filteredServers.filter((server) => server.type === "multi") || [];
+  const slayServers = filteredServers.filter((server) => server.type === "slay") || [];
 
   useEffect(() => {
     const savedServerName = localStorage.getItem("server_name");
-    if (savedServerName) {
+    
+    // When joining a room, switch to iframe-compatible server if current isn't compatible
+    if (isInRoom && servers) {
+      const currentServer = servers.find(s => s.data_id === activeServerId);
+      if (currentServer && !isIframeCompatible(currentServer)) {
+        // Switch to first available iframe-compatible server
+        const compatibleServer = servers.find(isIframeCompatible);
+        if (compatibleServer) {
+          setActiveServerId(compatibleServer.data_id);
+          setActiveServerType(compatibleServer.type);
+          setActiveServerName(compatibleServer.serverName);
+          localStorage.setItem("server_name", compatibleServer.serverName);
+          localStorage.setItem("server_type", compatibleServer.type);
+        }
+      }
+    } else if (savedServerName) {
       const matchingServer = servers?.find(
         (server) => server.serverName === savedServerName,
       );
@@ -57,7 +82,7 @@ function Servers({
       setActiveServerType(servers[0].type);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [servers]);
+  }, [servers, isInRoom, activeServerId]);
 
   return (
     <div className="relative bg-[#111111] p-4 w-full min-h-[100px] flex justify-center items-center max-[1200px]:bg-[#151515] max-[600px]:p-2">
@@ -75,10 +100,16 @@ function Servers({
                 Episode {activeEpisodeNum}
               </span>
             </p>
-            <p className="leading-5 text-[14px] font-medium text-center max-[600px]:text-[12px] max-[600px]:hidden">
-              𝕴𝖋 𝖙𝖍𝖊 𝖈𝖚𝖗𝖗𝖊𝖓𝖙 𝖘𝖊𝖗𝖛𝖊𝖗 𝖉𝖔𝖊𝖘𝖓&𝖆𝖕𝖔𝖘;𝖙 𝖜𝖔𝖗𝖐, 𝖕𝖑𝖊𝖆𝖘𝖊 𝖙𝖗𝖞 𝖔𝖙𝖍𝖊𝖗 𝖘𝖊𝖗𝖛𝖊𝖗𝖘
-              𝖇𝖊𝖘𝖎𝖉𝖊.
-            </p>
+            {isInRoom ? (
+              <p className="leading-5 text-[14px] font-medium text-center max-[600px]:text-[12px] text-blue-300">
+                👥 Multiplayer Mode - Only compatible servers shown
+              </p>
+            ) : (
+              <p className="leading-5 text-[14px] font-medium text-center max-[600px]:text-[12px] max-[600px]:hidden">
+                𝕴𝖋 𝖙𝖍𝖊 𝖈𝖚𝖗𝖗𝖊𝖓𝖙 𝖘𝖊𝖗𝖛𝖊𝖗 𝖉𝖔𝖊𝖘𝖓&𝖆𝖕𝖔𝖘;𝖙 𝖜𝖔𝖗𝖐, 𝖕𝖑𝖊𝖆𝖘𝖊 𝖙𝖗𝖞 𝖔𝖙𝖍𝖊𝖗 𝖘𝖊𝖗𝖛𝖊𝖗𝖘
+                𝖇𝖊𝖘𝖎𝖉𝖊.
+              </p>
+            )}
           </div>
           <div className="bg-[#1f1f1f] flex flex-col max-[600px]:rounded-lg max-[600px]:p-2">
             {rawServers.length > 0 && (
