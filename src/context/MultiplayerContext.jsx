@@ -128,17 +128,20 @@ export const MultiplayerProvider = ({ children }) => {
         const currentParams = new URLSearchParams(currentLocation.search);
         const currentAnimeId = currentPath.split('/watch/')[1];
         const currentEpisodeId = currentParams.get('ep');
+        const existingRoomCode = currentParams.get('room');
         
         // Only navigate if we're on a different anime or episode
         if (currentAnimeId !== data.animeId || currentEpisodeId !== data.currentEpisode) {
           const newUrl = `/watch/${data.animeId}?ep=${data.currentEpisode}&room=${data.roomCode}`;
+          console.log('Navigating to different anime/episode:', newUrl);
           navigateRef.current(newUrl);
-        } else {
-          // Just update URL to include room code if we're already on the right episode
+        } else if (!existingRoomCode || existingRoomCode !== data.roomCode) {
+          // Only update URL to include room code if it's missing or different
           const newUrl = `/watch/${data.animeId}?ep=${data.currentEpisode}&room=${data.roomCode}`;
-          if (currentLocation.pathname + currentLocation.search !== newUrl) {
-            navigateRef.current(newUrl, { replace: true });
-          }
+          console.log('Updating URL to include room code:', newUrl);
+          navigateRef.current(newUrl, { replace: true });
+        } else {
+          console.log('Already on correct episode with room code, no navigation needed');
         }
       }
     });
