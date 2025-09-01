@@ -167,12 +167,14 @@ export const MultiplayerProvider = ({ children }) => {
     });
 
     // Video sync events - debounced to prevent chat interference
-    newSocket.on('videoAction', (action) => {
+    newSocket.on('videoAction', (data) => {
       if (!isUpdatingFromSync.current) {
+        const action = data.action || data; // Handle both old and new data structures
         console.log('Received video action:', action.type, 'at time:', action.currentTime);
         setRoomVideoState(action);
         setShouldSyncVideo(true);
       } else {
+        const action = data.action || data;
         console.log('Ignoring video action during sync:', action.type);
       }
     });
@@ -263,9 +265,19 @@ export const MultiplayerProvider = ({ children }) => {
   const syncVideoAction = (action) => {
     if (socket && roomCode && isHost) {
       isUpdatingFromSync.current = true;
-      console.log('Emitting video action:', action.type, 'at time:', action.currentTime);
-      socket.emit('videoAction', { action });
-      // Longer delay to prevent sync conflicts
+      console.log('Emitting video action:', action.type, 'at time:', action.currentTime, 'to room:', roomCode);
+      
+      // Ensure action data is properly structured
+      const actionData = {
+        type: action.type,
+        currentTime: action.currentTime || 0,
+        roomCode: roomCode,
+        timestamp: Date.now()
+      };
+      
+      socket.emit('videoAction', { action: actionData });
+      
+      // Consistent delay to prevent sync conflicts
       setTimeout(() => {
         isUpdatingFromSync.current = false;
       }, 500);
