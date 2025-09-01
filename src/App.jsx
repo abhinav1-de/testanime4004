@@ -44,6 +44,13 @@ function App() {
   return (
     <HomeInfoProvider>
       <MultiplayerProvider>
+        {/* 3D Snow Effect */}
+        <div className="snow-container">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="snowflake">❄</div>
+          ))}
+        </div>
+        
         <div className="app-container px-4 lg:px-10">
         <main className={`content max-w-[2048px] mx-auto w-full transition-all duration-500 ${isPageLoaded ? 'fade-in' : 'opacity-0'}`}>
           {!isSplashScreen && <Navbar />}
