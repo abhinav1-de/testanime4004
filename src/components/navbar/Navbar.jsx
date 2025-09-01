@@ -5,6 +5,8 @@ import {
   faRandom,
   faMagnifyingGlass,
   faXmark,
+  faUsers,
+  faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
@@ -12,16 +14,30 @@ import Sidebar from "../sidebar/Sidebar";
 import { SearchProvider } from "@/src/context/SearchContext";
 import WebSearch from "../searchbar/WebSearch";
 import MobileSearch from "../searchbar/MobileSearch";
+import { useMultiplayer } from "@/src/context/MultiplayerContext";
 
 function Navbar() {
   const location = useLocation();
   const { language, toggleLanguage } = useLanguage();
+  const { isInRoom, joinRoom, roomError } = useMultiplayer();
   const [isNotHomePage, setIsNotHomePage] = useState(
     location.pathname !== "/" && location.pathname !== "/home"
   );
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [showJoinPanel, setShowJoinPanel] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
+  const [username, setUsername] = useState('');
+
+  const handleJoinRoom = () => {
+    if (roomCode.trim() && username.trim()) {
+      joinRoom(roomCode.trim(), username.trim());
+      setShowJoinPanel(false);
+      setRoomCode('');
+      setUsername('');
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,8 +107,23 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Language Toggle - Desktop */}
-            <div className="hidden md:flex items-center gap-2 glass rounded-lg p-1 border border-white/10">
+          {/* Right Section - Join Room & Language */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Join Room Button */}
+            {!isInRoom && (
+              <button
+                onClick={() => setShowJoinPanel(true)}
+                className="glass-morphism bg-gradient-to-r from-blue-600/90 to-purple-600/90 hover:from-blue-500/90 hover:to-purple-500/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 backdrop-blur-md border border-white/10 fade-in delay-500"
+                style={{ fontVariant: 'small-caps' }}
+                title="ᴊᴏɪɴ ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ ʀᴏᴏᴍ"
+              >
+                <FontAwesomeIcon icon={faUsers} className="w-4 h-4" />
+                <span className="text-sm font-medium">ᴊᴏɪɴ ʀᴏᴏᴍ</span>
+              </button>
+            )}
+            
+            {/* Language Toggle */}
+            <div className="flex items-center gap-2 glass rounded-lg p-1 border border-white/10">
               {["ᴇɴ", "ᴊᴘ"].map((lang, index) => (
                 <button
                   key={lang}
@@ -108,6 +139,7 @@ function Navbar() {
                 </button>
               ))}
             </div>
+          </div>
 
           {/* Mobile Search Icon */}
           <div className="md:hidden flex items-center">
@@ -130,6 +162,65 @@ function Navbar() {
           <div className="md:hidden glass border-t border-white/10 shadow-2xl backdrop-blur-xl fade-in">
             <MobileSearch onClose={() => setIsMobileSearchOpen(false)} />
         </div>
+        )}
+
+        {/* Join Room Modal */}
+        {showJoinPanel && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000001] fade-in">
+            <div className="glass-morphism bg-gradient-to-br from-gray-900/95 to-gray-800/95 border border-white/20 rounded-xl p-6 w-80 max-w-[90vw] shadow-2xl fade-in-scale">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white text-lg font-semibold" style={{ fontVariant: 'small-caps' }}>ᴊᴏɪɴ ʀᴏᴏᴍ</h3>
+                <button
+                  onClick={() => setShowJoinPanel(false)}
+                  className="text-gray-400 hover:text-white transition-colors duration-200 glass-hover p-2 rounded-lg"
+                >
+                  <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="fade-in delay-100">
+                  <label className="block text-gray-300 text-sm mb-2" style={{ fontVariant: 'small-caps' }}>ʏᴏᴜʀ ᴜꜱᴇʀɴᴀᴍᴇ</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-3 py-2 glass bg-gray-800/50 text-white rounded-lg border border-gray-600/50 focus:border-blue-500/80 focus:outline-none transition-all duration-200 backdrop-blur-sm"
+                    placeholder="ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴜꜱᴇʀɴᴀᴍᴇ"
+                    style={{ fontVariant: 'small-caps' }}
+                  />
+                </div>
+
+                <div className="fade-in delay-200">
+                  <label className="block text-gray-300 text-sm mb-2" style={{ fontVariant: 'small-caps' }}>ʀᴏᴏᴍ ᴄᴏᴅᴇ</label>
+                  <input
+                    type="text"
+                    value={roomCode}
+                    onChange={(e) => setRoomCode(e.target.value)}
+                    className="w-full px-3 py-2 glass bg-gray-800/50 text-white rounded-lg border border-gray-600/50 focus:border-blue-500/80 focus:outline-none transition-all duration-200 backdrop-blur-sm"
+                    placeholder="ᴇɴᴛᴇʀ ʀᴏᴏᴍ ᴄᴏᴅᴇ (ᴇ.ɢ. 57382)"
+                    style={{ fontVariant: 'small-caps' }}
+                  />
+                </div>
+
+                <button
+                  onClick={handleJoinRoom}
+                  disabled={!roomCode.trim() || !username.trim()}
+                  className="w-full glass-morphism bg-gradient-to-r from-blue-600/90 to-purple-600/90 hover:from-blue-500/90 hover:to-purple-500/90 disabled:from-gray-600/50 disabled:to-gray-600/50 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 backdrop-blur-md border border-white/10 fade-in delay-300 flex items-center justify-center gap-2"
+                  style={{ fontVariant: 'small-caps' }}
+                >
+                  <span>ᴊᴏɪɴ ʀᴏᴏᴍ</span>
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+                </button>
+
+                {roomError && (
+                  <div className="text-red-400 text-sm text-center fade-in" style={{ fontVariant: 'small-caps' }}>
+                    {roomError}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Sidebar */}
