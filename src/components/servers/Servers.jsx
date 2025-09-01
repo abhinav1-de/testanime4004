@@ -25,11 +25,12 @@ function Servers({
   const { isInRoom, createRoom, nickname, setNickname } = useMultiplayer();
   
   const handleCreateRoom = () => {
+    const roomName = prompt('Enter a name for your room (optional):') || 'Anime Room';
     if (!nickname || nickname.startsWith('Guest-')) {
       const newNickname = prompt('Enter your nickname for the room:') || `Guest-${Math.floor(1000 + Math.random() * 9000)}`;
       setNickname(newNickname);
     }
-    createRoom();
+    createRoom(roomName);
   };
   
   const handleServerSelect = (server) => {
@@ -295,4 +296,3 @@ function Servers({
 }
 
 export default Servers;
-
