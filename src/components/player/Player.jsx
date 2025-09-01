@@ -103,41 +103,60 @@ export default function Player({
       isUpdatingFromSync.current = true;
       setShouldSyncVideo(false);
 
+      console.log('=== PROCESSING VIDEO SYNC ===');
       console.log('Syncing video action:', roomVideoState.type, 'at time:', roomVideoState.currentTime, 'isHost:', isHost);
+      console.log('Video element exists:', !!art.video);
+      console.log('Video paused state:', art.video ? art.video.paused : 'N/A');
 
       // Immediate execution for better responsiveness
       try {
         switch (roomVideoState.type) {
           case "play":
             if (!isHost) {
-              console.log('Joined user: Playing video');
+              console.log('Joined user: Processing play command');
               // Sync time first if there's a significant difference
               const timeDiff = Math.abs(art.currentTime - roomVideoState.currentTime);
               console.log('Time difference:', timeDiff);
               if (timeDiff > 2) {
+                console.log('Syncing time to:', roomVideoState.currentTime);
                 art.currentTime = roomVideoState.currentTime;
               }
               // Ensure video plays
-              art.play().catch(err => {
+              console.log('Calling art.play()...');
+              art.play().then(() => {
+                console.log('Video play successful');
+              }).catch(err => {
                 console.error('Failed to play video during sync:', err);
               });
+            } else {
+              console.log('Ignoring play command - user is host');
             }
             break;
           case "pause":
             if (!isHost) {
-              console.log('Joined user: Pausing video');
+              console.log('Joined user: Processing pause command');
+              console.log('Current video paused state before pause:', art.video.paused);
               // Ensure video pauses immediately
               art.pause();
+              console.log('art.pause() called');
               // Also sync the exact pause time
               if (roomVideoState.currentTime !== undefined) {
+                console.log('Syncing pause time to:', roomVideoState.currentTime);
                 art.currentTime = roomVideoState.currentTime;
               }
+              setTimeout(() => {
+                console.log('Video paused state after pause:', art.video.paused);
+              }, 100);
+            } else {
+              console.log('Ignoring pause command - user is host');
             }
             break;
           case "seek":
             if (!isHost) {
               console.log('Joined user: Seeking to', roomVideoState.currentTime);
               art.currentTime = roomVideoState.currentTime;
+            } else {
+              console.log('Ignoring seek command - user is host');
             }
             break;
         }
@@ -151,6 +170,14 @@ export default function Player({
       }, 500);
     }
   }, [shouldSyncVideo, roomVideoState, isHost, setShouldSyncVideo]);
+
+  // Update multiplayer event handlers when room state changes
+  useEffect(() => {
+    if (artRef.current && artRef.current.updateMultiplayerHandlers) {
+      console.log('Updating multiplayer handlers. isInRoom:', isInRoom, 'isHost:', isHost);
+      artRef.current.updateMultiplayerHandlers();
+    }
+  }, [isInRoom, isHost]);
 
   useEffect(() => {
     const applyChapterStyles = () => {
@@ -469,45 +496,64 @@ export default function Player({
         leftAtRef.current = Math.floor(art.currentTime);
       });
 
-      // Multiplayer event handlers - only for host and prevent during sync
-      if (isInRoom && isHost) {
-        art.on("play", () => {
-          if (!isUpdatingFromSync.current) {
-            console.log('Host initiated play at:', art.currentTime);
-            // Small delay to ensure currentTime is accurate
-            setTimeout(() => {
+      // Store event handlers for cleanup
+      let playHandler, pauseHandler, seekHandler;
+
+      const setupMultiplayerHandlers = () => {
+        // Clean up existing handlers first
+        if (playHandler) art.off("play", playHandler);
+        if (pauseHandler) art.off("pause", pauseHandler);  
+        if (seekHandler) art.off("seek", seekHandler);
+
+        // Set up new handlers if host in room
+        if (isInRoom && isHost) {
+          console.log('Setting up multiplayer event handlers for host');
+
+          playHandler = () => {
+            if (!isUpdatingFromSync.current) {
+              console.log('Host initiated play at:', art.currentTime);
+              setTimeout(() => {
+                syncVideoAction({
+                  type: "play",
+                  currentTime: art.currentTime
+                });
+              }, 100);
+            }
+          };
+
+          pauseHandler = () => {
+            if (!isUpdatingFromSync.current) {
+              console.log('Host initiated pause at:', art.currentTime);
               syncVideoAction({
-                type: "play",
+                type: "pause",
                 currentTime: art.currentTime
               });
-            }, 100);
-          }
-        });
+            }
+          };
 
-        art.on("pause", () => {
-          if (!isUpdatingFromSync.current) {
-            console.log('Host initiated pause at:', art.currentTime);
-            // Immediate sync for pause to ensure responsive pausing
-            syncVideoAction({
-              type: "pause",
-              currentTime: art.currentTime
-            });
-          }
-        });
+          seekHandler = () => {
+            if (!isUpdatingFromSync.current) {
+              console.log('Host initiated seek to:', art.currentTime);
+              setTimeout(() => {
+                syncVideoAction({
+                  type: "seek",
+                  currentTime: art.currentTime
+                });
+              }, 100);
+            }
+          };
 
-        art.on("seek", () => {
-          if (!isUpdatingFromSync.current) {
-            console.log('Host initiated seek to:', art.currentTime);
-            // Small delay to ensure currentTime is updated after seek
-            setTimeout(() => {
-              syncVideoAction({
-                type: "seek",
-                currentTime: art.currentTime
-              });
-            }, 100);
-          }
-        });
-      }
+          art.on("play", playHandler);
+          art.on("pause", pauseHandler);
+          art.on("seek", seekHandler);
+        }
+      };
+
+      // Setup handlers initially
+      setupMultiplayerHandlers();
+
+      // Store the setup function on the art instance so it can be called externally
+      art.updateMultiplayerHandlers = setupMultiplayerHandlers;
 
       setTimeout(() => {
         art.layers[website_name].style.opacity = 0;
