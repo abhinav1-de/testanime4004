@@ -168,13 +168,18 @@ export const MultiplayerProvider = ({ children }) => {
 
     // Video sync events - debounced to prevent chat interference
     newSocket.on('videoAction', (data) => {
+      const action = data.action || data; // Handle both old and new data structures
+      console.log('=== RECEIVED VIDEO ACTION ===');
+      console.log('Action type:', action.type);
+      console.log('Action time:', action.currentTime);
+      console.log('Currently updating from sync:', isUpdatingFromSync.current);
+      console.log('Socket ID:', newSocket.id);
+      
       if (!isUpdatingFromSync.current) {
-        const action = data.action || data; // Handle both old and new data structures
-        console.log('Received video action:', action.type, 'at time:', action.currentTime);
+        console.log('Processing video action:', action.type);
         setRoomVideoState(action);
         setShouldSyncVideo(true);
       } else {
-        const action = data.action || data;
         console.log('Ignoring video action during sync:', action.type);
       }
     });
@@ -263,8 +268,15 @@ export const MultiplayerProvider = ({ children }) => {
   };
 
   const syncVideoAction = (action) => {
+    console.log('=== SYNC VIDEO ACTION CALLED ===');
+    console.log('Socket exists:', !!socket);
+    console.log('Room code:', roomCode);
+    console.log('Is host:', isHost);
+    console.log('Action:', action);
+    
     if (socket && roomCode && isHost) {
       isUpdatingFromSync.current = true;
+      console.log('=== EMITTING VIDEO ACTION ===');
       console.log('Emitting video action:', action.type, 'at time:', action.currentTime, 'to room:', roomCode);
       
       // Ensure action data is properly structured
@@ -275,12 +287,16 @@ export const MultiplayerProvider = ({ children }) => {
         timestamp: Date.now()
       };
       
+      console.log('Action data being sent:', actionData);
       socket.emit('videoAction', { action: actionData });
+      console.log('Video action emitted successfully');
       
       // Consistent delay to prevent sync conflicts
       setTimeout(() => {
         isUpdatingFromSync.current = false;
       }, 500);
+    } else {
+      console.log('Cannot sync video action - missing requirements');
     }
   };
 
