@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -24,10 +24,18 @@ import Contact from "./pages/contact/Contact";
 
 function App() {
   const location = useLocation();
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
 
-  // Scroll to top on location change
+  // Scroll to top on location change with smooth transition
   useEffect(() => {
+    setIsPageLoaded(false);
     window.scrollTo(0, 0);
+    
+    const timer = setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [location]);
 
   // Check if the current route is for the splash screen
@@ -37,7 +45,7 @@ function App() {
     <HomeInfoProvider>
       <MultiplayerProvider>
         <div className="app-container px-4 lg:px-10">
-        <main className="content max-w-[2048px] mx-auto w-full">
+        <main className={`content max-w-[2048px] mx-auto w-full transition-all duration-500 ${isPageLoaded ? 'fade-in' : 'opacity-0'}`}>
           {!isSplashScreen && <Navbar />}
           <Routes>
             <Route path="/" element={<SplashScreen />} />
