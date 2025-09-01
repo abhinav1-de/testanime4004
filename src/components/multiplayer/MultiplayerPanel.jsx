@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMultiplayer } from '@/src/context/MultiplayerContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -8,7 +8,8 @@ import {
   faPaperPlane, 
   faSignOutAlt,
   faUserPlus,
-  faCopy
+  faCopy,
+  faGripVertical
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function MultiplayerPanel() {
@@ -33,10 +34,46 @@ export default function MultiplayerPanel() {
   const [joinCode, setJoinCode] = useState('');
   const [chatMessage, setChatMessage] = useState('');
   const [nicknameInput, setNicknameInput] = useState(nickname);
+  const [panelHeight, setPanelHeight] = useState(384); // Default height (h-96 = 24rem = 384px)
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartY = useRef(0);
+  const startHeight = useRef(384);
 
   useEffect(() => {
     setNicknameInput(nickname);
   }, [nickname]);
+
+  // Handle resize functionality
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      const deltaY = resizeStartY.current - e.clientY;
+      const newHeight = Math.min(Math.max(startHeight.current + deltaY, 200), window.innerHeight - 120);
+      setPanelHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  const handleResizeStart = (e) => {
+    setIsResizing(true);
+    resizeStartY.current = e.clientY;
+    startHeight.current = panelHeight;
+    e.preventDefault();
+  };
 
   const handleCreateRoom = () => {
     if (nicknameInput.trim()) {
@@ -97,7 +134,10 @@ export default function MultiplayerPanel() {
 
       {/* Multiplayer Panel */}
       {showPanel && (
-        <div className="fixed bottom-20 right-4 w-80 max-[480px]:fixed max-[480px]:inset-4 max-[480px]:bottom-20 max-[480px]:right-4 max-[480px]:left-4 max-[480px]:w-auto bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50">
+        <div 
+          className="fixed bottom-20 right-4 w-80 max-[480px]:fixed max-[480px]:inset-4 max-[480px]:bottom-20 max-[480px]:right-4 max-[480px]:left-4 max-[480px]:w-auto bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50 select-none"
+          style={{ height: isInRoom ? `${panelHeight}px` : 'auto' }}
+        >
           {!isInRoom ? (
             // Room Creation/Join Interface
             <div className="p-4">
@@ -155,9 +195,20 @@ export default function MultiplayerPanel() {
             </div>
           ) : (
             // Room Interface
-            <div className="flex flex-col h-96 max-[480px]:h-[70vh]">
+            <div className="flex flex-col h-full">
+              {/* Resize Handle */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize bg-transparent hover:bg-gray-600/30 transition-colors flex items-center justify-center group"
+                onMouseDown={handleResizeStart}
+                data-testid="resize-handle"
+              >
+                <FontAwesomeIcon 
+                  icon={faGripVertical} 
+                  className="w-3 h-3 text-gray-500 group-hover:text-gray-300 transition-colors rotate-90" 
+                />
+              </div>
               {/* Room Header */}
-              <div className="p-4 max-[480px]:p-5 border-b border-gray-700">
+              <div className="p-4 max-[480px]:p-5 border-b border-gray-700 pt-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-semibold text-base max-[480px]:text-lg">Room {roomCode}</h3>
