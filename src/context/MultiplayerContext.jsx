@@ -64,12 +64,8 @@ export const MultiplayerProvider = ({ children }) => {
       setIsConnected(true);
       console.log('Connected to multiplayer server');
       
-      // If we were in a room before disconnect, try to maintain connection
-      const currentRoomCode = roomCode;
-      if (currentRoomCode && !isInRoom) {
-        console.log('Attempting to rejoin room after reconnect:', currentRoomCode);
-        // Don't auto-rejoin to avoid conflicts, just log for debugging
-      }
+      // Don't try to access roomCode here as it creates a stale closure
+      // Let other parts of the app handle room rejoining logic
     });
 
     newSocket.on('disconnect', (reason) => {
