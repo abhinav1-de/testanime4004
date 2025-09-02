@@ -7,17 +7,17 @@ import { Link, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 
 const MENU_ITEMS = [
-  { name: "ʜᴏᴍᴇ", path: "/home", icon: faHome },
-  { name: "ʀᴇᴄᴇɴᴛʟʏ ᴀᴅᴅᴇᴅ", path: "/recently-added", icon: faCirclePlay },
-  { name: "ᴛᴏᴘ ᴜᴘᴄᴏᴍɪɴɢ", path: "/top-upcoming", icon: faFilePen },
-  { name: "ꜱᴜʙʙᴇᴅ ᴀɴɪᴍᴇ", path: "/subbed-anime", icon: faFilePen },
-  { name: "ᴅᴜʙʙᴇᴅ ᴀɴɪᴍᴇ", path: "/dubbed-anime", icon: faPlay },
-  { name: "ᴍᴏꜱᴛ ᴘᴏᴘᴜʟᴀʀ", path: "/most-popular", icon: faFire },
-  { name: "ᴍᴏᴠɪᴇꜱ", path: "/movie", icon: faFilm },
-  { name: "ᴛᴠ ꜱᴇʀɪᴇꜱ", path: "/tv", icon: faTv },
-  { name: "ᴏᴠᴀꜱ", path: "/ova", icon: faCirclePlay },
-  { name: "ᴏɴᴀꜱ", path: "/ona", icon: faPlay },
-  { name: "ꜱᴘᴇᴄɪᴀʟꜱ", path: "/special", icon: faClock },
+  { name: "Home", path: "/home", icon: faHome },
+  { name: "Recently Added", path: "/recently-added", icon: faCirclePlay },
+  { name: "Top Upcoming", path: "/top-upcoming", icon: faFilePen },
+  { name: "Subbed Anime", path: "/subbed-anime", icon: faFilePen },
+  { name: "Dubbed Anime", path: "/dubbed-anime", icon: faPlay },
+  { name: "Most Popular", path: "/most-popular", icon: faFire },
+  { name: "Movies", path: "/movie", icon: faFilm },
+  { name: "TV Series", path: "/tv", icon: faTv },
+  { name: "OVAs", path: "/ova", icon: faCirclePlay },
+  { name: "ONAs", path: "/ona", icon: faPlay },
+  { name: "Specials", path: "/special", icon: faClock },
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -70,20 +70,19 @@ const Sidebar = ({ isOpen, onClose }) => {
       )}
 
       <aside
-        className={`sidebar-main ${isOpen ? 'sidebar-open' : ''} glass`}
+        className={`sidebar-main ${isOpen ? 'sidebar-open' : ''}`}
         role="dialog"
         aria-modal="true"
-        style={{ fontVariant: 'small-caps' }}
       >
         <div className="sidebar-content">
           {/* Header */}
-          <div className="sidebar-header fade-in">
+          <div className="sidebar-header">
             <button
               onClick={onClose}
-              className="close-button glass-hover"
+              className="close-button"
             >
               <FaChevronLeft className="text-sm" />
-              <span className="text-sm font-medium">ᴄʟᴏꜱᴇ ᴍᴇɴᴜ</span>
+              <span className="text-sm font-medium">Close Menu</span>
             </button>
           </div>
 
@@ -92,31 +91,31 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="quick-actions-grid">
               <Link
                 to="/random"
-                className="quick-action-item glass-hover fade-in delay-100"
+                className="quick-action-item"
               >
                 <FontAwesomeIcon icon={faRandom} className="text-lg" />
-                <span className="text-xs font-medium">ʀᴀɴᴅᴏᴍ</span>
+                <span className="text-xs font-medium">Random</span>
               </Link>
               <Link
                 to="/movie"
-                className="quick-action-item glass-hover fade-in delay-200"
+                className="quick-action-item"
               >
                 <FontAwesomeIcon icon={faFilm} className="text-lg" />
-                <span className="text-xs font-medium">ᴍᴏᴠɪᴇ</span>
+                <span className="text-xs font-medium">Movie</span>
               </Link>
-              <div className="quick-action-item glass-hover fade-in delay-300">
+              <div className="quick-action-item">
                 <div className="language-switcher">
-                  {["ᴇɴ", "ᴊᴘ"].map((lang, index) => (
+                  {["EN", "JP"].map((lang) => (
                     <button
                       key={lang}
-                      onClick={() => toggleLanguage(index === 0 ? "EN" : "JP")}
-                      className={`lang-button ${language === (index === 0 ? "EN" : "JP") ? 'active' : ''}`}
+                      onClick={() => toggleLanguage(lang)}
+                      className={`lang-button ${language === lang ? 'active' : ''}`}
                     >
                       {lang}
                     </button>
                   ))}
                 </div>
-                <span className="text-xs font-medium text-white/60">ʟᴀɴɢᴜᴀɢᴇ</span>
+                <span className="text-xs font-medium text-white/60">Language</span>
               </div>
             </div>
           </div>
@@ -127,7 +126,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Link
                 key={index}
                 to={item.path}
-                className={`menu-item glass-hover fade-in delay-${(index + 4) * 100}`}
+                className="menu-item"
               >
                 <FontAwesomeIcon icon={item.icon} className="text-lg w-5" />
                 <span className="font-medium">{item.name}</span>

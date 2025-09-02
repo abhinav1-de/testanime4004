@@ -19,47 +19,34 @@ function Home() {
   if (!homeInfo) return <Error error="404" />;
   return (
     <>
-      <div className="pt-16 w-full fade-in" style={{ fontVariant: 'small-caps' }}>
-        <div className="fade-in-scale delay-100">
-          <Spotlight spotlights={homeInfo.spotlights} />
-        </div>
-        <div className="mt-6 fade-in delay-200">
+      <JoinRoomPanel />
+      <div className="pt-16 w-full">
+        <Spotlight spotlights={homeInfo.spotlights} />
+        <div className="mt-6">
           <Genre data={homeInfo.genres} />
         </div>
-        <div className="fade-in delay-300">
-          <ContinueWatching />
-        </div>
+        <ContinueWatching />
         
-        <div className="w-full grid grid-cols-[minmax(0,75%),minmax(0,25%)] gap-x-6 max-[1200px]:flex flex-col fade-in delay-400">
+        <div className="w-full grid grid-cols-[minmax(0,75%),minmax(0,25%)] gap-x-6 max-[1200px]:flex flex-col">
           <div>
-            <div className="fade-in delay-500">
-              <CategoryCard
-                label="ʟᴀᴛᴇꜱᴛ ᴇᴘɪꜱᴏᴅᴇ"
-                data={homeInfo.latest_episode}
-                className="mt-[60px]"
-                path="recently-updated"
-                limit={12}
-              />
-            </div>
-            <div className="fade-in delay-600">
-              <Schedule className="mt-8" />
-            </div>
-            <div className="fade-in delay-700">
-              <TabbedAnimeSection 
-                topAiring={homeInfo.top_airing}
-                mostFavorite={homeInfo.most_favorite}
-                latestCompleted={homeInfo.latest_completed}
-                className="mt-8"
-              />
-            </div>
+            <CategoryCard
+              label="Latest Episode"
+              data={homeInfo.latest_episode}
+              className="mt-[60px]"
+              path="recently-updated"
+              limit={12}
+            />
+            <Schedule className="mt-8" />
+            <TabbedAnimeSection 
+              topAiring={homeInfo.top_airing}
+              mostFavorite={homeInfo.most_favorite}
+              latestCompleted={homeInfo.latest_completed}
+              className="mt-8"
+            />
           </div>
           <div className="w-full mt-[60px]">
-            <div className="fade-in delay-800">
-              <Trending trending={homeInfo.trending} />
-            </div>
-            <div className="fade-in delay-900">
-              <Topten data={homeInfo.topten} className="mt-12" />
-            </div>
+            <Trending trending={homeInfo.trending} />
+            <Topten data={homeInfo.topten} className="mt-12" />
           </div>
         </div>
       </div>

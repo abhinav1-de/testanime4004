@@ -70,22 +70,20 @@ const CategoryCard = React.memo(
 
     return (
       <div className={`w-full ${className}`}>
-        <div className="flex items-center justify-between mb-8 fade-in">
-          <h1 className="font-semibold text-2xl text-white max-[478px]:text-[18px] tracking-wide glass-hover p-2 rounded-lg transition-all duration-300"
-              style={{ fontVariant: 'small-caps' }}>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="font-semibold text-2xl text-white max-[478px]:text-[18px] capitalize tracking-wide">
             {label}
           </h1>
           {showViewMore && (
             <Link
               to={`/${path}`}
-              className="flex items-center gap-x-1 py-2 px-4 rounded-lg glass glass-hover
-                text-[13px] font-medium text-white/80 hover:text-white
-                transition-all duration-300 group border border-white/10"
-              style={{ fontVariant: 'small-caps' }}
+              className="flex items-center gap-x-1 py-1 px-2 -mr-2 rounded-md
+                text-[13px] font-medium text-[#ffffff80] hover:text-white
+                transition-all duration-300 group"
             >
-              ᴠɪᴇᴡ ᴀʟʟ
+              View all
               <FaChevronRight className="text-[10px] transform transition-transform duration-300 
-                group-hover:translate-x-1 animate-glow" />
+                group-hover:translate-x-0.5" />
             </Link>
           )}
         </div>
